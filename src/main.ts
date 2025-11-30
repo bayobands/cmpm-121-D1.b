@@ -1,20 +1,18 @@
 import "./style.css";
 
-// === Base Counter and Button (CPU Clicker Theme) ===
+// === Base Counter and Button ===
 let counter: number = 0;
-const unit = "cycles"; // main currency
-
 const counterDiv = document.createElement("div");
-counterDiv.innerHTML = `⏱️ ${counter} ${unit}`;
+counterDiv.innerHTML = `🔥 ${counter}`;
 document.body.append(counterDiv);
 
 const button = document.createElement("button");
-button.innerHTML = "🖱️ Tick CPU"; // main click button
+button.innerHTML = "🔥"; // main click button
 document.body.append(button);
 
 button.addEventListener("click", () => {
   counter++;
-  counterDiv.innerHTML = `⏱️ ${Math.floor(counter)} ${unit}`;
+  counterDiv.innerHTML = `🔥 ${Math.floor(counter)}`;
 });
 
 // === Growth Tracking ===
@@ -26,136 +24,89 @@ function update(time: number) {
   lastTime = time;
 
   counter += (growthRate * delta) / 1000;
-  counterDiv.innerHTML = `⏱️ ${Math.floor(counter)} ${unit}`;
-  refreshUI();
+  counterDiv.innerHTML = `🔥 ${Math.floor(counter)}`;
+  refreshStatus();
 
   requestAnimationFrame(update);
 }
 
 requestAnimationFrame(update);
 
-// === Step 10: Expanded Data-Driven Upgrades with Descriptions ===
-interface Item {
-  key: string;
-  name: string;
-  baseCost: number;
-  rate: number; // cycles/sec
-  count: number;
-  description: string;
-}
+// === Step 6: Multiple Upgrades + Status ===
+const rateDiv = document.createElement("div");
+rateDiv.innerHTML = `Growth rate: ${growthRate.toFixed(1)} 🔥/sec`;
+document.body.append(rateDiv);
 
-const items: Item[] = [
-  {
-    key: "A",
-    name: "Oscillator",
-    baseCost: 10,
-    rate: 0.1,
-    count: 0,
-    description: "A stable clock that gently ticks out extra cycles.",
-  },
-  {
-    key: "B",
-    name: "CPU Core",
-    baseCost: 100,
-    rate: 2.0,
-    count: 0,
-    description: "A general-purpose processor adding steady throughput.",
-  },
-  {
-    key: "C",
-    name: "Server Rack",
-    baseCost: 1000,
-    rate: 50.0,
-    count: 0,
-    description: "A rack of humming servers working nonstop.",
-  },
-  {
-    key: "D",
-    name: "Data Center",
-    baseCost: 10000,
-    rate: 400.0,
-    count: 0,
-    description: "A warehouse of machines devoted to generating cycles.",
-  },
-  {
-    key: "E",
-    name: "Quantum Lab",
-    baseCost: 100000,
-    rate: 5000.0,
-    count: 0,
-    description: "Harnesses fragile qubits for mind-bending performance.",
-  },
-];
+const ownedDiv = document.createElement("div");
+ownedDiv.innerHTML = `Owned: A=0, B=0, C=0`;
+document.body.append(ownedDiv);
 
-// Price helpers
+// Each upgrade item
+let ownedA = 0, ownedB = 0, ownedC = 0;
+
+const btnA = document.createElement("button");
+const btnB = document.createElement("button");
+const btnC = document.createElement("button");
+
+document.body.append(btnA, btnB, btnC);
+
+// === Step 7: Price scaling helpers ===
 function price(base: number, owned: number): number {
   return base * Math.pow(1.15, owned);
 }
+
 function fmt(n: number): string {
   return n >= 1000 ? Math.round(n).toString() : n.toFixed(2);
 }
 
-// Create info + shop containers
-const rateDiv = document.createElement("div");
-document.body.append(rateDiv);
+// === Refresh UI & Buttons ===
+function refreshStatus() {
+  rateDiv.innerHTML = `Growth rate: ${growthRate.toFixed(1)} 🔥/sec`;
+  ownedDiv.innerHTML = `Owned: A=${ownedA}, B=${ownedB}, C=${ownedC}`;
 
-const ownedDiv = document.createElement("div");
-document.body.append(ownedDiv);
+  const costA = price(10, ownedA);
+  const costB = price(100, ownedB);
+  const costC = price(1000, ownedC);
 
-const shopDiv = document.createElement("div");
-document.body.append(shopDiv);
+  btnA.textContent = `Buy A (+0.1/sec) — cost ${fmt(costA)}`;
+  btnB.textContent = `Buy B (+2/sec) — cost ${fmt(costB)}`;
+  btnC.textContent = `Buy C (+50/sec) — cost ${fmt(costC)}`;
 
-// Map of buttons for easy updates
-const buttons = new Map<string, HTMLButtonElement>();
-
-function rebuildShop() {
-  shopDiv.innerHTML = "";
-  items.forEach((item) => {
-    const wrapper = document.createElement("div");
-    wrapper.style.margin = "10px 0";
-
-    const btn = document.createElement("button");
-    btn.dataset.key = item.key;
-    buttons.set(item.key, btn);
-
-    const desc = document.createElement("div");
-    desc.textContent = item.description;
-    desc.style.fontSize = "0.9rem";
-    desc.style.marginLeft = "4px";
-
-    wrapper.append(btn, desc);
-    shopDiv.append(wrapper);
-
-    btn.addEventListener("click", () => {
-      const cost = price(item.baseCost, item.count);
-      if (counter >= cost) {
-        counter -= cost;
-        item.count += 1;
-        growthRate += item.rate;
-        refreshUI();
-      }
-    });
-  });
+  btnA.disabled = counter < costA;
+  btnB.disabled = counter < costB;
+  btnC.disabled = counter < costC;
 }
 
-function refreshShopButtons() {
-  items.forEach((item) => {
-    const btn = buttons.get(item.key)!;
-    const cost = price(item.baseCost, item.count);
-    btn.textContent = `Buy ${item.name} (+${item.rate} ${unit}/sec) — cost ${
-      fmt(cost)
-    } (owned ${item.count})`;
-    btn.disabled = counter < cost;
-  });
-}
+// === Purchase logic for each upgrade ===
+btnA.addEventListener("click", () => {
+  const cost = price(10, ownedA);
+  if (counter >= cost) {
+    counter -= cost;
+    growthRate += 0.1;
+    ownedA++;
+    refreshStatus();
+  }
+});
 
-function refreshUI() {
-  rateDiv.innerHTML = `Growth rate: ${growthRate.toFixed(1)} ${unit}/sec`;
-  const ownedLabel = items.map((it) => `${it.name}=${it.count}`).join(", ");
-  ownedDiv.innerHTML = `Owned: ${ownedLabel}`;
-  refreshShopButtons();
-}
+btnB.addEventListener("click", () => {
+  const cost = price(100, ownedB);
+  if (counter >= cost) {
+    counter -= cost;
+    growthRate += 2;
+    ownedB++;
+    refreshStatus();
+  }
+});
 
-// Build and initialize
-rebuildShop();
-refreshUI();
+btnC.addEventListener("click", () => {
+  const cost = price(1000, ownedC);
+  if (counter >= cost) {
+    counter -= cost;
+    growthRate += 50;
+    ownedC++;
+    refreshStatus();
+  }
+});
+
+// Initial refresh to set up button states
+refreshStatus();
