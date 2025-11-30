@@ -1,18 +1,20 @@
 import "./style.css";
 
-// === Base Counter and Button ===
+// === Base Counter and Button (CPU Clicker Theme) ===
 let counter: number = 0;
+const unit = "cycles"; // main currency
+
 const counterDiv = document.createElement("div");
-counterDiv.innerHTML = `🔥 ${counter}`;
+counterDiv.innerHTML = `⏱️ ${counter} ${unit}`;
 document.body.append(counterDiv);
 
 const button = document.createElement("button");
-button.innerHTML = "🔥"; // main click button
+button.innerHTML = "🖱️ Tick CPU"; // main click button
 document.body.append(button);
 
 button.addEventListener("click", () => {
   counter++;
-  counterDiv.innerHTML = `🔥 ${Math.floor(counter)}`;
+  counterDiv.innerHTML = `⏱️ ${Math.floor(counter)} ${unit}`;
 });
 
 // === Growth Tracking ===
@@ -24,7 +26,7 @@ function update(time: number) {
   lastTime = time;
 
   counter += (growthRate * delta) / 1000;
-  counterDiv.innerHTML = `🔥 ${Math.floor(counter)}`;
+  counterDiv.innerHTML = `⏱️ ${Math.floor(counter)} ${unit}`;
   refreshStatus();
 
   requestAnimationFrame(update);
@@ -34,11 +36,11 @@ requestAnimationFrame(update);
 
 // === Step 6: Multiple Upgrades + Status ===
 const rateDiv = document.createElement("div");
-rateDiv.innerHTML = `Growth rate: ${growthRate.toFixed(1)} 🔥/sec`;
+rateDiv.innerHTML = `Growth rate: ${growthRate.toFixed(1)} ${unit}/sec`;
 document.body.append(rateDiv);
 
 const ownedDiv = document.createElement("div");
-ownedDiv.innerHTML = `Owned: A=0, B=0, C=0`;
+ownedDiv.innerHTML = `Owned: Oscillator=0, CPU Core=0, Server Rack=0`;
 document.body.append(ownedDiv);
 
 // Each upgrade item
@@ -61,16 +63,17 @@ function fmt(n: number): string {
 
 // === Refresh UI & Buttons ===
 function refreshStatus() {
-  rateDiv.innerHTML = `Growth rate: ${growthRate.toFixed(1)} 🔥/sec`;
-  ownedDiv.innerHTML = `Owned: A=${ownedA}, B=${ownedB}, C=${ownedC}`;
+  rateDiv.innerHTML = `Growth rate: ${growthRate.toFixed(1)} ${unit}/sec`;
+  ownedDiv.innerHTML =
+    `Owned: Oscillator=${ownedA}, CPU Core=${ownedB}, Server Rack=${ownedC}`;
 
   const costA = price(10, ownedA);
   const costB = price(100, ownedB);
   const costC = price(1000, ownedC);
 
-  btnA.textContent = `Buy A (+0.1/sec) — cost ${fmt(costA)}`;
-  btnB.textContent = `Buy B (+2/sec) — cost ${fmt(costB)}`;
-  btnC.textContent = `Buy C (+50/sec) — cost ${fmt(costC)}`;
+  btnA.textContent = `Buy Oscillator (+0.1 ${unit}/sec) — cost ${fmt(costA)}`;
+  btnB.textContent = `Buy CPU Core (+2 ${unit}/sec) — cost ${fmt(costB)}`;
+  btnC.textContent = `Buy Server Rack (+50 ${unit}/sec) — cost ${fmt(costC)}`;
 
   btnA.disabled = counter < costA;
   btnB.disabled = counter < costB;
